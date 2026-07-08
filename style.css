@@ -203,6 +203,12 @@ h2 {
     /* Fix padding expanding width */
 }
 
+.remarks-input {
+    min-height: 110px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
 /* Checkbox Card */
 .checkbox-card {
     display: flex;
@@ -625,6 +631,18 @@ h2 {
 .remarks-section ul {
     margin: 5px 0;
     padding-left: 18px;
+}
+
+.custom-remarks-highlight {
+    list-style: none;
+    margin: 8px 0 10px -18px;
+    padding: 8px 10px;
+    background: linear-gradient(transparent 35%, rgba(251, 146, 60, 0.42) 35%);
+    border-left: 4px solid #f97316;
+    border-radius: 4px;
+    color: #7c2d12;
+    font-weight: 600;
+    white-space: normal;
 }
 
 .footer-section {

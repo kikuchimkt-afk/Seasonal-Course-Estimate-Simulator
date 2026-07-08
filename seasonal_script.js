@@ -65,7 +65,8 @@ let state = {
     grade: 'middle12',
     subjectsList: [],
     otherCosts: [], // { id, name, price }
-    materialTbd: false
+    materialTbd: false,
+    customRemarks: ''
 };
 
 // Elements
@@ -94,6 +95,7 @@ function init() {
     els.otherCostsContainer = document.getElementById('other-costs-container');
     els.addCostBtn = document.getElementById('add-cost-btn');
     els.materialTbdCheck = document.getElementById('material-tbd-check');
+    els.customRemarksInput = document.getElementById('custom-remarks');
 
     els.generateBtn = document.getElementById('generate-btn');
     els.studentNameInput = document.getElementById('student-name');
@@ -171,6 +173,7 @@ function setupListeners() {
     // Other Inputs
     els.gradeSelect.addEventListener('change', (e) => { state.grade = e.target.value; updateCalculations(); });
     els.materialTbdCheck.addEventListener('change', (e) => { state.materialTbd = e.target.checked; updateCalculations(); });
+    els.customRemarksInput.addEventListener('input', (e) => { state.customRemarks = e.target.value; });
     els.generateBtn.addEventListener('click', generateDocument);
 
     // Add Subject
@@ -368,6 +371,37 @@ function getSubTotal(ratioType) {
     return { slots, unitPrice, cost };
 }
 
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function sanitizeFileName(value) {
+    const cleaned = String(value || '')
+        .trim()
+        .replace(/[\\/:*?"<>|]/g, '')
+        .replace(/\s+/g, '')
+        .replace(/\.+$/g, '');
+    return cleaned || '生徒名未入力';
+}
+
+function setPrintFileName(studentName, seasonLabel, isInvoice) {
+    const previousTitle = document.title;
+    const docLabel = isInvoice ? '請求書' : '見積書';
+    const baseName = `${sanitizeFileName(studentName)}_${seasonLabel}${docLabel}.pdf`;
+    document.title = baseName;
+
+    const restoreTitle = () => {
+        document.title = previousTitle;
+        window.removeEventListener('afterprint', restoreTitle);
+    };
+    window.addEventListener('afterprint', restoreTitle);
+}
+
 function updateCalculations() {
     const c12 = getSubTotal("1:2");
     const c11 = getSubTotal("1:1");
@@ -428,13 +462,15 @@ function generateDocument() {
     const today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
     document.getElementById('print-date').textContent = today;
     document.getElementById('estimate-id').textContent = Math.floor(100000 + Math.random() * 900000);
-    const sName = els.studentNameInput.value.trim() || '______';
+    const enteredStudentName = els.studentNameInput.value.trim();
+    const sName = enteredStudentName || '______';
     document.getElementById('print-student-name').textContent = sName + ' 様';
 
     // 2. Headings & Messages
     const seasonLabel = SEASON_TITLES[state.season] || '季節講習';
     const isInvoice = (state.docType === 'invoice');
     document.getElementById('print-title').textContent = `${seasonLabel} ${isInvoice ? '御請求書' : '御見積書'}`;
+    setPrintFileName(enteredStudentName, seasonLabel, isInvoice);
 
     const greetingP = document.getElementById('print-greeting');
     greetingP.innerHTML = isInvoice
@@ -542,6 +578,10 @@ function generateDocument() {
     `;
     if (state.materialTbd) {
         remarksHtml += `<li style="font-weight:bold; color:#b45309;">※ 教材費は未定のため、詳細決定後に別途精算させていただきます。</li>`;
+    }
+    const customRemarks = (state.customRemarks || '').trim();
+    if (customRemarks) {
+        remarksHtml += `<li class="custom-remarks-highlight"><strong>備考：</strong><br>${escapeHtml(customRemarks).replace(/\n/g, '<br>')}</li>`;
     }
     remarksHtml += `<li>ご不明な点がございましたら、お気軽に教室までお問い合わせください。</li>`;
     remarksUl.innerHTML = remarksHtml;
