@@ -384,7 +384,8 @@ h2 {
 .initial-cost-section h3 {
     margin: 0 0 10px 0;
     font-size: 1rem;
-    opacity: 0.9;
+    color: #111827;
+    opacity: 1;
 }
 
 .note {

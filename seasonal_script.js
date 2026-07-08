@@ -109,10 +109,10 @@ function init() {
     els.logoInput = document.getElementById('logo-input');
     els.clearLogoBtn = document.getElementById('logo-clear-btn');
 
-    // Default Deadline (+2 weeks)
+    // Default Deadline (+1 week)
     if (els.deadlineInput) {
         const d = new Date();
-        d.setDate(d.getDate() + 14);
+        d.setDate(d.getDate() + 7);
         els.deadlineInput.valueAsDate = d;
     }
 
